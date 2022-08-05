@@ -340,6 +340,9 @@ resource "azurerm_linux_function_app" "func" {
     "DB_HOST"                                  = azurerm_mssql_server.db.fully_qualified_domain_name 
     "DB_NAME"                                  = azurerm_mssql_database.db.name
     "SCM_DO_BUILD_DURING_DEPLOYMENT"           = "1"
+    "BUILD_FLAGS"                              = "UseExpressBuild"
+    "ENABLE_ORYX_BUILD"                        = "true"
+    "XDG_CACHE_HOME"                           = "/tmp/.cache"
   }
 
 }
