@@ -317,23 +317,26 @@ resource "azurerm_linux_function_app" "func" {
   location            = azurerm_resource_group.rg.location
 
   key_vault_reference_identity_id = azurerm_user_assigned_identity.uai.id
-  storage_account_name            = azurerm_storage_account.sa.name
+  #storage_account_name            = azurerm_storage_account.sa.name
+  storage_key_vault_secret_id     = azurerm_key_vault_secret.saconnstr.id
   storage_uses_managed_identity   = true
   service_plan_id                 = azurerm_service_plan.asp.id
   virtual_network_subnet_id              = azurerm_subnet.functions.id
 
   site_config {
+    application_insights_key = azurerm_application_insights.app.instrumentation_key
     application_stack {
       python_version = "3.8"
     }
+    
   }
   identity {
     type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.uai.id]
   }
   app_settings = {
-    "APPINSIGHTS_INSTRUMENTATIONKEY"           = azurerm_application_insights.app.instrumentation_key
-    "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = "@Microsoft.KeyVault(SecretUri=https://${azurerm_key_vault.kv.name}.vault.azure.net/secrets/${azurerm_key_vault_secret.saconnstr.name}/)" #VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.saconnstr.name})"
+    #"APPINSIGHTS_INSTRUMENTATIONKEY"           = azurerm_application_insights.app.instrumentation_key
+    #"WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = "@Microsoft.KeyVault(SecretUri=https://${azurerm_key_vault.kv.name}.vault.azure.net/secrets/${azurerm_key_vault_secret.saconnstr.name}/)" #VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.saconnstr.name})"
     "DB_HOST"                                  = azurerm_mssql_server.db.fully_qualified_domain_name 
     "DB_NAME"                                  = azurerm_mssql_database.db.name
     "SCM_DO_BUILD_DURING_DEPLOYMENT"           = "1"
