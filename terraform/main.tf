@@ -302,7 +302,7 @@ resource "azurerm_service_plan" "asp" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   os_type             = "Linux"
-  sku_name            = "Y1"
+  sku_name            = "EP1"
 }
 
 resource "azurerm_linux_function_app" "func" {
@@ -324,7 +324,7 @@ resource "azurerm_linux_function_app" "func" {
 
   site_config {
     application_stack {
-      python_version = "3.9"
+      python_version = "3.8"
     }
   }
   identity {
@@ -333,7 +333,7 @@ resource "azurerm_linux_function_app" "func" {
   }
   app_settings = {
     "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_application_insights.app.instrumentation_key
-    "AzureWebJobsStorage"            = "@Microsoft.KeyVault(SecretUri=https://${azurerm_key_vault.kv.name}.vault.azure.net/secrets/${azurerm_key_vault_secret.saconnstr.name}/)" #VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.saconnstr.name})"
+    #"AzureWebJobsStorage"            = "@Microsoft.KeyVault(SecretUri=https://${azurerm_key_vault.kv.name}.vault.azure.net/secrets/${azurerm_key_vault_secret.saconnstr.name}/)" #VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.saconnstr.name})"
   }
 
 }
