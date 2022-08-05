@@ -423,3 +423,9 @@ resource "azurerm_role_assignment" "app_to_sql" {
   role_definition_name = "SQL DB Contributor"
   principal_id = azurerm_user_assigned_identity.uai.principal_id
 }
+
+resource "azurerm_role_assignment" "spn_to_function" {
+  scope                = azurerm_linux_function_app.func.id
+  role_definition_name = "Contributor"
+  principal_id = data.azurerm_client_config.current.object_id
+}
