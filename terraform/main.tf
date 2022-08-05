@@ -279,7 +279,7 @@ resource "azurerm_key_vault_secret" "saconnstr" {
     azurerm_key_vault_access_policy.sp
   ]
   name         = "saconnstr"
-  value        = azurerm_storage_account.sa.primary_blob_connection_string
+  value        = azurerm_storage_account.sa.primary_connection_string
   key_vault_id = azurerm_key_vault.kv.id
   tags         = {}
 }
@@ -333,7 +333,7 @@ resource "azurerm_linux_function_app" "func" {
   }
   app_settings = {
     "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_application_insights.app.instrumentation_key
-    #"AzureWebJobsStorage"            = "@Microsoft.KeyVault(SecretUri=https://${azurerm_key_vault.kv.name}.vault.azure.net/secrets/${azurerm_key_vault_secret.saconnstr.name}/)" #VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.saconnstr.name})"
+    "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"            = "@Microsoft.KeyVault(SecretUri=https://${azurerm_key_vault.kv.name}.vault.azure.net/secrets/${azurerm_key_vault_secret.saconnstr.name}/)" #VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.saconnstr.name})"
   }
 
 }
