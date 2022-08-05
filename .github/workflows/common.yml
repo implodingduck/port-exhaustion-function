@@ -36,7 +36,7 @@ jobs:
           node-version: '14'
       
       - name: 'Install Azure Function Core Tools'
-        run: 'npm i -g azure-functions-core-tools@3'
+        run: 'npm i -g azure-functions-core-tools@4'
 
       - name: HashiCorp - Setup Terraform
         # You may pin to the exact commit or the version.
