@@ -28,3 +28,13 @@ variable "location" {
 variable "gh_repo" {
   type = string
 }
+
+variable "az_db_username" {
+  type = string
+  sensitive = true
+}
+
+variable "az_db_oid" {
+  type = string
+  sensitive = true
+}

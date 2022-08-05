@@ -50,7 +50,7 @@ jobs:
       - uses: Azure/get-keyvault-secrets@v1
         with:
           keyvault: ${{ secrets.KV_NAME }}
-          secrets: 'container-name, resource-group-name, storage-account-name, subscription-id, ARM-TENANT-ID, ARM-CLIENT-ID, ARM-CLIENT-SECRET'  # comma separated list of secret keys that need to be fetched from the Key Vault 
+          secrets: 'container-name, resource-group-name, storage-account-name, subscription-id, ARM-TENANT-ID, ARM-CLIENT-ID, ARM-CLIENT-SECRET, az-db-oid, az-db-username'  # comma separated list of secret keys that need to be fetched from the Key Vault 
         id: kvAction
 
       - name: plan terraform
@@ -64,6 +64,8 @@ jobs:
           TF_VAR_subscription_id: ${{ steps.kvAction.outputs.subscription-id }}
           TF_VAR_key: ${{ github.repository }}.tfstate
           TF_VAR_gh_repo: ${{ github.repository }}
+          TF_VAR_az_db_oid: ${{ steps.kvAction.outputs.az-db-oid }}
+          TF_VAR_az_db_username: ${{ steps.kvAction.outputs.az-db-username }}
         run: |
             echo "starting..."
             cd terraform
@@ -82,6 +84,8 @@ jobs:
           TF_VAR_subscription_id: ${{ steps.kvAction.outputs.subscription-id }}
           TF_VAR_key: ${{ github.repository }}.tfstate
           TF_VAR_gh_repo: ${{ github.repository }}
+          TF_VAR_az_db_oid: ${{ steps.kvAction.outputs.az-db-oid }}
+          TF_VAR_az_db_username: ${{ steps.kvAction.outputs.az-db-username }}
         run: |
             echo "starting..."
             cd terraform
