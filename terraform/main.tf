@@ -151,7 +151,6 @@ resource "azurerm_storage_account" "sa" {
 
 resource "azurerm_storage_account_network_rules" "fw" {
   depends_on = [
-    azurerm_app_service_virtual_network_swift_connection.example,
     null_resource.publish_func,
   ]
   storage_account_id = azurerm_storage_account.sa.id
@@ -321,6 +320,7 @@ resource "azurerm_linux_function_app" "func" {
   storage_account_name            = azurerm_storage_account.sa.name
   storage_uses_managed_identity   = true
   service_plan_id                 = azurerm_service_plan.asp.id
+  virtual_network_subnet_id              = azurerm_subnet.functions.id
 
   site_config {
     application_stack {
@@ -334,6 +334,7 @@ resource "azurerm_linux_function_app" "func" {
   app_settings = {
     "APPINSIGHTS_INSTRUMENTATIONKEY"               = azurerm_application_insights.app.instrumentation_key
   }
+
 }
 
 resource "local_file" "localsettings" {
@@ -363,11 +364,6 @@ resource "null_resource" "publish_func" {
     command     = "func azure functionapp publish ${azurerm_linux_function_app.func.name}"
     
   }
-}
-
-resource "azurerm_app_service_virtual_network_swift_connection" "example" {
-  app_service_id = azurerm_function_app.func.id
-  subnet_id      = azurerm_subnet.functions.id
 }
 
 
