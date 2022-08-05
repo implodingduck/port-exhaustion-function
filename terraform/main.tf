@@ -339,6 +339,7 @@ resource "azurerm_linux_function_app" "func" {
     #"WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = "@Microsoft.KeyVault(SecretUri=https://${azurerm_key_vault.kv.name}.vault.azure.net/secrets/${azurerm_key_vault_secret.saconnstr.name}/)" #VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.saconnstr.name})"
     "DB_HOST"                                  = azurerm_mssql_server.db.fully_qualified_domain_name 
     "DB_NAME"                                  = azurerm_mssql_database.db.name
+    "DB_USER"                                  = azurerm_user_assigned_identity.uai.client_id
     "SCM_DO_BUILD_DURING_DEPLOYMENT"           = "1"
     "BUILD_FLAGS"                              = "UseExpressBuild"
     "ENABLE_ORYX_BUILD"                        = "true"

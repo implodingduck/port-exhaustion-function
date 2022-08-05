@@ -7,6 +7,10 @@ import azure.functions as func
 from time import sleep
 import socket, threading
 
+import pyodbc
+import os
+import json
+
 max_threads = 50
 final = {}
 def check_port(ip, port):
@@ -35,6 +39,20 @@ def main(mytimer: func.TimerRequest) -> None:
         logging.info('The timer is past due!')
 
     logging.info('Python timer trigger function ran at %s', utc_timestamp)
+    server = os.environ.get('DB_HOST')
+    database = os.environ.get('DB_NAME')
+    username = os.environ.get('DB_USER')
+    
+    driver= '{ODBC Driver 17 for SQL Server}'
+
+    with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';') as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT TOP 3 name, collation_name FROM sys.databases")
+            row = cursor.fetchone()
+            while row:
+                logging.info(str(row[0]) + " " + str(row[1]))
+                row = cursor.fetchone()
+
     for port in range(49152,65535):
         threading.Thread(target=check_port, args=['127.0.0.1', port]).start()
         #sleep(0.1)
@@ -44,4 +62,6 @@ def main(mytimer: func.TimerRequest) -> None:
             sleep(1)
 
     sleep(1)
-    print(final)
+    logging.info(json.dumps(final))
+    
+    
