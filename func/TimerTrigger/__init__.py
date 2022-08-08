@@ -67,8 +67,10 @@ def main(mytimer: func.TimerRequest) -> None:
     elif func_type == 'USEGLOBAL':
         logging.info('Using the global logic')
         if global_conn == None:
+            logging.info('creating a new connection...')
             global_conn = pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';Authentication=ActiveDirectoryMsi;')
         if global_cursor == None:
+            logging.info('creating a new cursor...')
             global_cursor = global_conn.cursor()        
         do_stuff(global_cursor)
     else:
