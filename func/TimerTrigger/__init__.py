@@ -30,6 +30,12 @@ def check_port(ip, port):
         pass
 
 
+def do_stuff(cursor):
+    cursor.execute("SELECT TOP 3 name, collation_name FROM sys.databases")
+    row = cursor.fetchone()
+    while row:
+        logging.info(str(row[0]) + " " + str(row[1]))
+        row = cursor.fetchone()
 
 def main(mytimer: func.TimerRequest) -> None:
     utc_timestamp = datetime.datetime.utcnow().replace(
@@ -45,13 +51,14 @@ def main(mytimer: func.TimerRequest) -> None:
     
     driver= '{ODBC Driver 17 for SQL Server}'
 
-    with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';Authentication=ActiveDirectoryMsi;') as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT TOP 3 name, collation_name FROM sys.databases")
-            row = cursor.fetchone()
-            while row:
-                logging.info(str(row[0]) + " " + str(row[1]))
-                row = cursor.fetchone()
+    # with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';Authentication=ActiveDirectoryMsi;') as conn:
+    #     with conn.cursor() as cursor:
+    #         do_stuff(cursor)
+    
+    conn = pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';Authentication=ActiveDirectoryMsi;')
+    cursor = conn.cursor()
+    do_stuff(cursor)
+            
 
     for port in range(49152,65535):
         threading.Thread(target=check_port, args=['127.0.0.1', port]).start()
