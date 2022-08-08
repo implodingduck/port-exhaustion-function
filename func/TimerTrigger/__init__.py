@@ -58,17 +58,18 @@ def main(mytimer: func.TimerRequest) -> None:
     driver= '{ODBC Driver 17 for SQL Server}'
 
     func_type = os.environ.get('FUNC_TYPE')
+    
     if func_type == 'USEWITH':
       logging.info('Using the with keyword logic')
-      with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';Authentication=ActiveDirectoryMsi;') as conn:
-        with conn.cursor() as cursor:
-          do_stuff(cursor)
+      with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';Authentication=ActiveDirectoryMsi;') as wconn:
+        with wconn.cursor() as wcursor:
+          do_stuff(wcursor)
     elif func_type == 'USEGLOBAL':
         logging.info('Using the global logic')
         if global_conn == None:
             global_conn = pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';Authentication=ActiveDirectoryMsi;')
         if global_cursor == None:
-            global_cursor = conn.cursor()        
+            global_cursor = global_conn.cursor()        
         do_stuff(global_cursor)
     else:
         logging.info('Using the local logic')
