@@ -298,6 +298,18 @@ resource "azurerm_role_assignment" "system" {
   principal_id         = azurerm_linux_function_app.func.identity.0.principal_id  
 }
 
+resource "azurerm_role_assignment" "system_global" {
+  scope                = azurerm_storage_account.sa.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = azurerm_linux_function_app.func_global.identity.0.principal_id  
+}
+
+resource "azurerm_role_assignment" "system_with" {
+  scope                = azurerm_storage_account.sa.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = azurerm_linux_function_app.func_with.identity.0.principal_id  
+}
+
 resource "azurerm_service_plan" "asp" {
   name                = "asp-${local.func_name}"
   resource_group_name = azurerm_resource_group.rg.name
@@ -345,6 +357,87 @@ resource "azurerm_linux_function_app" "func" {
     "BUILD_FLAGS"                              = "UseExpressBuild"
     "ENABLE_ORYX_BUILD"                        = "true"
     "XDG_CACHE_HOME"                           = "/tmp/.cache"
+    "FUNC_TYPE"                                = "USELOCAL"
+  }
+
+}
+
+resource "azurerm_linux_function_app" "func_global" {
+  depends_on = [
+    azurerm_role_assignment.uai,
+    azurerm_storage_container.hosts,
+    azurerm_storage_container.secrets,
+    azurerm_key_vault_access_policy.uai
+  ]
+  name                = "${local.func_name}global"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+
+  key_vault_reference_identity_id = azurerm_user_assigned_identity.uai.id
+  storage_key_vault_secret_id     = azurerm_key_vault_secret.saconnstr.id
+  service_plan_id                 = azurerm_service_plan.asp.id
+  virtual_network_subnet_id              = azurerm_subnet.functions.id
+
+  site_config {
+    application_insights_key = azurerm_application_insights.app.instrumentation_key
+    application_stack {
+      python_version = "3.8"
+    }
+    
+  }
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.uai.id]
+  }
+  app_settings = {
+    "DB_HOST"                                  = azurerm_mssql_server.db.fully_qualified_domain_name 
+    "DB_NAME"                                  = azurerm_mssql_database.db.name
+    "DB_USER"                                  = azurerm_user_assigned_identity.uai.client_id
+    "SCM_DO_BUILD_DURING_DEPLOYMENT"           = "1"
+    "BUILD_FLAGS"                              = "UseExpressBuild"
+    "ENABLE_ORYX_BUILD"                        = "true"
+    "XDG_CACHE_HOME"                           = "/tmp/.cache"
+    "FUNC_TYPE"                                = "USEGLOBAL"
+  }
+
+}
+
+resource "azurerm_linux_function_app" "func_with" {
+  depends_on = [
+    azurerm_role_assignment.uai,
+    azurerm_storage_container.hosts,
+    azurerm_storage_container.secrets,
+    azurerm_key_vault_access_policy.uai
+  ]
+  name                = "${local.func_name}with"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+
+  key_vault_reference_identity_id = azurerm_user_assigned_identity.uai.id
+  storage_key_vault_secret_id     = azurerm_key_vault_secret.saconnstr.id
+  service_plan_id                 = azurerm_service_plan.asp.id
+  virtual_network_subnet_id              = azurerm_subnet.functions.id
+
+  site_config {
+    application_insights_key = azurerm_application_insights.app.instrumentation_key
+    application_stack {
+      python_version = "3.8"
+    }
+    
+  }
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.uai.id]
+  }
+  app_settings = {
+    "DB_HOST"                                  = azurerm_mssql_server.db.fully_qualified_domain_name 
+    "DB_NAME"                                  = azurerm_mssql_database.db.name
+    "DB_USER"                                  = azurerm_user_assigned_identity.uai.client_id
+    "SCM_DO_BUILD_DURING_DEPLOYMENT"           = "1"
+    "BUILD_FLAGS"                              = "UseExpressBuild"
+    "ENABLE_ORYX_BUILD"                        = "true"
+    "XDG_CACHE_HOME"                           = "/tmp/.cache"
+    "FUNC_TYPE"                                = "USEWITH"
   }
 
 }
@@ -377,6 +470,37 @@ resource "null_resource" "publish_func" {
     
   }
 }
+
+resource "null_resource" "publish_func_global" {
+  depends_on = [
+    azurerm_linux_function_app.func_global,
+    local_file.localsettings
+  ]
+  triggers = {
+    index = "${timestamp()}"
+  }
+  provisioner "local-exec" {
+    working_dir = "../func"
+    command     = "timeout 10m func azure functionapp publish ${azurerm_linux_function_app.func_global.name} --build remote"
+    
+  }
+}
+
+resource "null_resource" "publish_func_with" {
+  depends_on = [
+    azurerm_linux_function_app.func_with,
+    local_file.localsettings
+  ]
+  triggers = {
+    index = "${timestamp()}"
+  }
+  provisioner "local-exec" {
+    working_dir = "../func"
+    command     = "timeout 10m func azure functionapp publish ${azurerm_linux_function_app.func_with.name} --build remote"
+    
+  }
+}
+
 
 
 resource "azurerm_application_insights" "app" {
@@ -431,6 +555,18 @@ resource "azurerm_role_assignment" "app_to_sql" {
 
 resource "azurerm_role_assignment" "spn_to_function" {
   scope                = azurerm_linux_function_app.func.id
+  role_definition_name = "Contributor"
+  principal_id = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_role_assignment" "spn_to_function_global" {
+  scope                = azurerm_linux_function_app.func_global.id
+  role_definition_name = "Contributor"
+  principal_id = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_role_assignment" "spn_to_function_with" {
+  scope                = azurerm_linux_function_app.func_with.id
   role_definition_name = "Contributor"
   principal_id = data.azurerm_client_config.current.object_id
 }

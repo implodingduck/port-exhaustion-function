@@ -37,7 +37,13 @@ def do_stuff(cursor):
         logging.info(str(row[0]) + " " + str(row[1]))
         row = cursor.fetchone()
 
+global_conn = None
+global_cursor = None
+
 def main(mytimer: func.TimerRequest) -> None:
+    global global_conn
+    global global_cursor
+
     utc_timestamp = datetime.datetime.utcnow().replace(
         tzinfo=datetime.timezone.utc).isoformat()
 
@@ -51,13 +57,21 @@ def main(mytimer: func.TimerRequest) -> None:
     
     driver= '{ODBC Driver 17 for SQL Server}'
 
-    # with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';Authentication=ActiveDirectoryMsi;') as conn:
-    #     with conn.cursor() as cursor:
-    #         do_stuff(cursor)
-    
-    conn = pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';Authentication=ActiveDirectoryMsi;')
-    cursor = conn.cursor()
-    do_stuff(cursor)
+    func_type = os.environ.get('FUNC_TYPE')
+    if func_type == 'USEWITH':
+      with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';Authentication=ActiveDirectoryMsi;') as conn:
+        with conn.cursor() as cursor:
+          do_stuff(cursor)
+    elif func_type == 'USEGLOBAL':
+        if global_conn == None:
+            global_conn = pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';Authentication=ActiveDirectoryMsi;')
+        if global_cursor == None:
+            global_cursor = conn.cursor()        
+        do_stuff(global_cursor)
+    else:
+        conn = pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';Authentication=ActiveDirectoryMsi;')
+        cursor = conn.cursor()
+        do_stuff(cursor)
             
 
     for port in range(49152,65535):
@@ -69,6 +83,8 @@ def main(mytimer: func.TimerRequest) -> None:
             sleep(1)
 
     sleep(1)
+    
     logging.info(json.dumps(final))
+    logging.info(f"Number of ports used: {len(final)}")
     
     
