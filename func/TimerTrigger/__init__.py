@@ -37,13 +37,16 @@ def do_stuff(cursor):
         logging.info(str(row[0]) + " " + str(row[1]))
         row = cursor.fetchone()
 
-global_conn = None
-global_cursor = None
+server = os.environ.get('DB_HOST')
+database = os.environ.get('DB_NAME')
+username = os.environ.get('DB_USER')
+
+driver= '{ODBC Driver 17 for SQL Server}'
+
+global_conn = pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';Authentication=ActiveDirectoryMsi;') if os.environ.get('FUNC_TYPE') == 'USEGLOBAL' else None
+global_cursor = global_conn.cursor() if os.environ.get('FUNC_TYPE') == 'USEGLOBAL' else None
 
 def main(mytimer: func.TimerRequest) -> None:
-    global global_conn
-    global global_cursor
-
     utc_timestamp = datetime.datetime.utcnow().replace(
         tzinfo=datetime.timezone.utc).isoformat()
 
@@ -51,11 +54,7 @@ def main(mytimer: func.TimerRequest) -> None:
         logging.info('The timer is past due!')
 
     logging.info('Python timer trigger function ran at %s', utc_timestamp)
-    server = os.environ.get('DB_HOST')
-    database = os.environ.get('DB_NAME')
-    username = os.environ.get('DB_USER')
     
-    driver= '{ODBC Driver 17 for SQL Server}'
 
     func_type = os.environ.get('FUNC_TYPE')
     
@@ -66,12 +65,6 @@ def main(mytimer: func.TimerRequest) -> None:
           do_stuff(wcursor)
     elif func_type == 'USEGLOBAL':
         logging.info('Using the global logic')
-        if global_conn == None:
-            logging.info('creating a new connection...')
-            global_conn = pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';Authentication=ActiveDirectoryMsi;')
-        if global_cursor == None:
-            logging.info('creating a new cursor...')
-            global_cursor = global_conn.cursor()        
         do_stuff(global_cursor)
     else:
         logging.info('Using the local logic')
