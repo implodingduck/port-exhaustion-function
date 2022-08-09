@@ -77,6 +77,6 @@ def main(mytimer: func.TimerRequest) -> None:
             
 
     netconnections = psutil.net_connections(kind='tcp')
-    logging.info(netconnections)
+    logging.info(json.dumps(netconnections))
     
     
