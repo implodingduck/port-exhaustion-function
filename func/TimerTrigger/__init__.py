@@ -45,6 +45,8 @@ driver= '{ODBC Driver 17 for SQL Server}'
 
 global_conn = pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';Authentication=ActiveDirectoryMsi;') if os.environ.get('FUNC_TYPE') == 'USEGLOBAL' else None
 global_cursor = global_conn.cursor() if os.environ.get('FUNC_TYPE') == 'USEGLOBAL' else None
+if os.environ.get('FUNC_TYPE') == 'USEGLOBAL':
+    logging.info("I have initiated...")
 
 def main(mytimer: func.TimerRequest) -> None:
     utc_timestamp = datetime.datetime.utcnow().replace(
