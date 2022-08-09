@@ -10,6 +10,7 @@ import socket, threading
 import pyodbc
 import os
 import json
+import psutil
 
 max_threads = 50
 final = {}
@@ -75,17 +76,7 @@ def main(mytimer: func.TimerRequest) -> None:
         do_stuff(cursor)
             
 
-    for port in range(49152,65535):
-        threading.Thread(target=check_port, args=['127.0.0.1', port]).start()
-        #sleep(0.1)
-
-        # limit the number of threads.
-        while threading.active_count() > max_threads :
-            sleep(1)
-
-    sleep(1)
-    
-    logging.info(json.dumps(final))
-    logging.info(f"Number of ports used: {len(final)}")
+    netconnections = psutil.net_connections(kind='tcp')
+    logging.info(netconnections)
     
     
